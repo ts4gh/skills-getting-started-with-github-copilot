@@ -142,3 +142,62 @@ footer {
   padding: 20px;
   color: #666;
 }
+
+.participants {
+  margin-top: 12px;
+}
+
+.participants h5 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #333766;
+  font-weight: 700;
+}
+
+/* Keep a bulleted list but style each item as a subtle pill */
+
+.participants-list {
+  list-style-type: none; /* hide bullets */
+  padding-left: 0;
+  margin: 0;
+}
+
+.participant-item {
+  display: flex; /* lay out label + delete button */
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  background-color: #eef3ff;
+  color: #1a237e;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.participant-item.no-participants {
+  display: block;
+}
+
+/* Remove participant button */
+.remove-participant {
+  margin-left: auto; /* push to the right */
+  background: transparent;
+  border: none;
+  color: #c62828;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.remove-participant:hover {
+  background-color: rgba(198,40,40,0.08);
+}
+
+/* Subtle style for the "no participants" message */
+.participant-item.no-participants {
+  background-color: #fff7e6;
+  color: #8a6d00;
+  font-weight: 500;
+}
