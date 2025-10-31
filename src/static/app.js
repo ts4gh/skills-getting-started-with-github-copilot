@@ -10,8 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/activities");
       const activities = await response.json();
 
-      // Clear loading message
-      activitiesList.innerHTML = "";
+  // Clear loading message
+  activitiesList.innerHTML = "";
+  // Reset activity select options (keep placeholder)
+  activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -22,7 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Build participants list HTML (show friendly message if empty)
         const participantsHTML = details.participants && details.participants.length
-          ? details.participants.map(p => `<li class="participant-item">${p}</li>`).join("")
+          ? details.participants.map(p =>
+              `<li class="participant-item">${p}<button class="remove-participant" data-activity="${encodeURIComponent(name)}" data-email="${encodeURIComponent(p)}" title="Remove participant">✖</button></li>`
+            ).join("")
           : `<li class="participant-item no-participants">No participants yet</li>`;
 
         activityCard.innerHTML = `
@@ -52,6 +56,48 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Event delegation for remove participant buttons
+  activitiesList.addEventListener('click', async (event) => {
+    const btn = event.target.closest('.remove-participant');
+    if (!btn) return;
+
+    const encodedActivity = btn.dataset.activity;
+    const encodedEmail = btn.dataset.email;
+    // decode for display, but we'll use encoded values in URL
+    const activity = decodeURIComponent(encodedActivity);
+    const email = decodeURIComponent(encodedEmail);
+
+    try {
+      const confirmed = confirm(`Remove ${email} from ${activity}?`);
+      if (!confirmed) return;
+
+      const response = await fetch(`/activities/${encodedActivity}/participants?email=${encodedEmail}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        messageDiv.textContent = result.message;
+        messageDiv.className = 'message success';
+        // Refresh activities
+        fetchActivities();
+      } else {
+        messageDiv.textContent = result.detail || 'Failed to remove participant';
+        messageDiv.className = 'message error';
+      }
+
+      messageDiv.classList.remove('hidden');
+      setTimeout(() => messageDiv.classList.add('hidden'), 4000);
+    } catch (err) {
+      console.error('Error removing participant:', err);
+      messageDiv.textContent = 'Network error while removing participant';
+      messageDiv.className = 'message error';
+      messageDiv.classList.remove('hidden');
+      setTimeout(() => messageDiv.classList.add('hidden'), 4000);
+    }
+  });
+
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -71,11 +117,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (response.ok) {
         messageDiv.textContent = result.message;
-        messageDiv.className = "success";
+        messageDiv.className = "message success";
         signupForm.reset();
+        // Refresh activities so new participant shows up immediately
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
-        messageDiv.className = "error";
+        messageDiv.className = "message error";
       }
 
       messageDiv.classList.remove("hidden");
